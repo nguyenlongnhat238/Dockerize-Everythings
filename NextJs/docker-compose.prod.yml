@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  nextjs_frontend:
+    container_name: nextjs_frontend
+    image: nextjs_frontend:latest # <-- change to the image name you built
+    restart: always
+    ports:
+      - 3000:3000
+

@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  nextjs_frontend:
+    container_name: nextjs_frontend
+    build: .
+    restart: always
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/src/app # <-- bind the app volume for auto-reloading
+      - /usr/src/app/node_modules # <-- bind the node_modules volume for running dev server
+    command: npm run dev # <-- run the dev server
+

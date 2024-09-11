@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+  reactjs_frontend:
+    image: reactjs_frontend:latest
+    container_name: reactjs_frontend
+    ports:
+      - "80:80"

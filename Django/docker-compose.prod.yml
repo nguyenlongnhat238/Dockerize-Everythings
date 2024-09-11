@@ -1,0 +1,74 @@
+version: "3.7"
+
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    volumes:
+      - ./static_volume:/home/app/web/staticfiles  # <-- bind the static volume
+      - ./media_volume:/home/app/web/media  # <-- bind the media volume
+
+  web:
+    container_name: web
+    image: django_web:latest # <-- change to the image name you built
+    volumes:
+      - ./app:/home/app/web
+      - ./static_volume:/home/app/web/staticfiles  # <-- bind the static volume
+      - ./media_volume:/home/app/web/media  # <-- bind the media volume
+    restart: always
+    command: bash -c "source /opt/venv/bin/activate && daphne -b 0.0.0.0 -p 8000 core.asgi:application"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - cache
+    env_file:
+      - ./.env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  cache:
+    container_name: cache
+    image: redis:7.0-rc3-bullseye
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server --save 20 1 --loglevel warning --requirepass 123secret@!warning
+    volumes:
+      - ./cache_data:/cache_data
+
+  celery_worker:
+    container_name: celery_worker
+    image: django_web:latest # <-- change to the image name you built
+    env_file:
+      - ./.env
+    restart: always
+    command: celery -A core worker --loglevel=info --concurrency=20 --pool=gevent
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  celery_scheduler:
+    container_name: celery_scheduler
+    image: django_web:latest # <-- change to the image name you built
+    env_file:
+      - ./.env
+    restart: always
+    command: celery -A core beat -l info
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"

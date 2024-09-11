@@ -1,0 +1,39 @@
+version: "3.7"
+
+services:
+  laravel_backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_backend
+    ports:
+      - "8090:8090"
+    volumes:
+      - .:/app
+      # vendor php
+      - /app/vendor
+    env_file:
+      - .env
+    depends_on:
+      - laravel_database
+    
+  laravel_database:
+    image: mysql:latest
+    container_name: laravel_database
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+  
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: laravel_database
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+  

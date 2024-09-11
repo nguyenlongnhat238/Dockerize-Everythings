@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  nodejs_database:
+    container_name: nodejs_database
+    image: mongo:4.0.22-xenial
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+#    volumes:
+#      - ./var/post-database:/data/db
+
+  nodejs_backend:
+    container_name: nodejs_backend
+    build: .
+    restart: always
+    environment:
+      MONGO_URL: ${POST_MONGO_URL}
+      MONGO_DBNAME: ${MONGO_DBNAME}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      - nodejs_database
+    ports:
+      - 4000:4000
+    volumes:
+      - ./src:/usr/src/app/src # <-- bind the app volume for auto-reloading
+      - /usr/src/app/node_modules # <-- bind the node_modules volume for running dev server
+    command: npm run dev # <-- run the dev server

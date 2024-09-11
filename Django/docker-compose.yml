@@ -1,0 +1,76 @@
+version: '3.7'
+
+services:
+  database:
+    image: postgres:15.6
+    container_name: financial_db
+    # restart: always
+    environment:
+      - POSTGRES_DB=${SQL_DATABASE}
+      - POSTGRES_USER=${SQL_USER}
+      - POSTGRES_PASSWORD=${SQL_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  web:
+    build:
+      # context: ./app
+      context: .
+      dockerfile: Dockerfile
+    container_name: financial_web
+    # restart: always
+    volumes:
+      - ./app:/usr/src/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    depends_on:
+      - database
+      - cache
+    command: python manage.py runserver 0.0.0.0:8000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  cache:
+    container_name: financial_cache
+    # restart: always
+    image: redis:alpine
+    command: redis-server --save 20 1 --loglevel warning --requirepass 123secret@!warning
+    volumes:
+      - ./redis_data:/data
+    ports:
+      - "6379:6379"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  worker:
+    container_name: financial_worker
+    # restart: always
+    env_file:
+      - ./.env
+    build:
+      # context: ./app
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/usr/src/app
+    command: celery -A core worker --loglevel=info --concurrency=20 --pool=gevent
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
