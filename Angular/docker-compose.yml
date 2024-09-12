@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  obadge_frontend:
+    container_name: obadge_frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4300:4200"
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    # entrypoint: ng serve --host 0.0.0.0
+    command: ng serve --host 0.0.0.0

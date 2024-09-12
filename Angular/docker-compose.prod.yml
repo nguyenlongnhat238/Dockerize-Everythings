@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+  obadge_frontend:
+    container_name: obadge_frontend
+    image: obadge_frontend:latest # <-- change to the image name you built
+    ports:
+      - "4200:80"
